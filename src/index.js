@@ -14,7 +14,7 @@ async function main() {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
     const containerPath = process.env.AZURE_STORAGE_CONTAINER_BLOB_PREFIX;
     const sasTTL = process.env.AZURE_STORAGE_SAS_TTL || 15;
-    const outZipFile = process.env.CSM_OUTPUT_ZIP_FILE = 'csm-download-data.zip';
+    const outZipFile = process.env.CSM_OUTPUT_ZIP_FILE || 'csm-download-data.zip';
 
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
     getConnectionStringInfos(connectionString)
