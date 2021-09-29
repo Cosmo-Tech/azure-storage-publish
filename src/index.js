@@ -42,6 +42,11 @@ async function main() {
   await fs.promises.writeFile(sasFile, sas);
 }
 
+/**
+ * Upload a file to Azure Blob Storage Container
+ * @param {object} clients - The Azure storage clients list
+ * @param {object} fileInfo - The file info to upload: name and path
+ */
 async function uploadFile(clients, fileInfo) {
   clients.containerClient.createIfNotExists();
   await clients.blobClient.uploadFile(fileInfo.filePath, {
@@ -51,6 +56,13 @@ async function uploadFile(clients, fileInfo) {
   });
 }
 
+/**
+ * Create the needed Azure Blob Strorage client and returns them with blob infos too
+ * @param {string} connectionString - The Azure Storage account connection string
+ * @param {string} containerBlobPrefix - The Azure container and blob prefix in the form container/blobPrefix
+ * @param {string} blobName - The wanted blob name
+ * @return {object} service, container, blob clients and container and blob infos
+ */
 async function createAzureClients(connectionString, containerBlobPrefix, blobName) {
   console.log('Creating Azure clients');
   console.debug('Creating blob service client');
@@ -72,6 +84,11 @@ async function createAzureClients(connectionString, containerBlobPrefix, blobNam
   };
 }
 
+/**
+ * Split the container/blobPrefix format into container and prefix
+ * @param {string} csmAzureStoragePath - The path to split
+ * @return {array} [container, blobPrefix]
+ */
 async function splitContainerBlobPrefix(csmAzureStoragePath) {
   console.debug(`Spliting ${csmAzureStoragePath}`);
   const [container, ...prefix] = csmAzureStoragePath.split('/', 2);
@@ -81,6 +98,11 @@ async function splitContainerBlobPrefix(csmAzureStoragePath) {
   return [container, blobPrefix];
 }
 
+/**
+ * Extract informations from Azure Storage Account Connection String
+ * @param {string} connectionString - The connection string
+ * @return {object} An object with each information coming from connection string as key: value
+ */
 async function getConnectionStringInfos(connectionString) {
   const infos = connectionString.split(';');
   const csInfos = {};
@@ -99,7 +121,13 @@ async function getConnectionStringInfos(connectionString) {
   return csInfos;
 }
 
-async function zipDataIfNeeded(dirPath, zipFileName, callback) {
+/**
+ * Zip all data if needed and return a single file path
+ * @param {string} dirPath - The directory to prepare
+ * @param {string} zipFileName - The zip file name if multiple files found
+ * @return {string} The unique file path containing data from dirPath. Null if no files
+ */
+async function zipDataIfNeeded(dirPath, zipFileName) {
   return new Promise((resolve, reject) => {
     const files = fs.readdirSync(dirPath);
     const filesCount = files.length;
@@ -128,6 +156,10 @@ async function zipDataIfNeeded(dirPath, zipFileName, callback) {
   });
 }
 
+/**
+ * Create a unique temp directory
+ * @return {string} The temp directory path
+ */
 async function createTempDir() {
   return new Promise((resolve, reject) => {
     fs.mkdtemp(path.join(os.tmpdir(), 'csm-'), (err, folder) => {
@@ -138,6 +170,15 @@ async function createTempDir() {
   });
 };
 
+/**
+ * Create a download URL with a Shared Access Security token
+ * @param {object} clients - The Azure Storage clients and container, blob infos
+ * @param {object} csInfos - The informations extracted from the connection string
+ * @param {number} [ttlInMin=15] - The SAS token time to live in minutes
+ * @param {string} [ipFilter] - The SAS token IP filter if needed
+ * @param {string} [permissions=r] - The SAS token permissions
+ * @return {string} The generate download URL with the Shared Access Security token
+ */
 async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = 'r') {
   console.log(`Generating SAS URL for ${ttlInMin} minutes`);
   console.debug(`Permissions: ${permissions}`);
