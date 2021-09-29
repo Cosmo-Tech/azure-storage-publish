@@ -4,7 +4,12 @@
   "description": "Cosmo Tech Azure Storage publish with SAS URL in file",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "local": "node .",
+    "build-registry": "docker build -t $REGISTRY/azure-storage-publish:$TAG .",
+    "build": "docker build -t azure-storage-publish .",
+    "publish": "docker push $REGISTRY/azure-storage-publish:$TAG",
+    "lint": "node_modules/eslint/bin/eslint.js src/",
+    "lintfix": "node_modules/eslint/bin/eslint.js src/ --fix"
   },
   "repository": {
     "type": "git",
