@@ -8,6 +8,9 @@ const AdmZip = require('adm-zip');
 
 main().then(() => console.log('Done')).catch((ex) => console.log(`Error: ${ex.message}`));
 
+/**
+ * The main application function
+ */
 async function main() {
   const dataPath = process.env.CSM_DATA_ABSOLUTE_PATH;
   if (!dataPath) {
