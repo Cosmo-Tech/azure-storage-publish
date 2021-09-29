@@ -184,12 +184,16 @@ async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = '
   console.debug(`Permissions: ${permissions}`);
   console.debug('Creating Shared credentials');
   const creds = new StorageSharedKeyCredential(csInfos.AccountName, csInfos.AccountKey);
-  const startIp = '0.0.0.0';
-  let endIp = '255.255.255.255';
+  let ipRange = {
+    start: '0.0.0.0',
+    end: '255.255.255.255',
+  };
+
   if (ipFilter) {
     console.log(`SAS IP filter detected: ${ipFilter}`);
-    startId = ipFilter;
-    endIp = ipFilter;
+    ipRange = {
+      start: ipFilter,
+    };
   }
   const containerName = clients.containerName;
   const blobName = clients.blobPath;
@@ -201,7 +205,7 @@ async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = '
     permissions: BlobSASPermissions.parse(permissions),
     startsOn: new Date(),
     expiresOn: new Date(new Date().valueOf() + ttlInMin * 60000),
-    ipRange: {start: startIp, end: endIp},
+    ipRange: ipRange,
   },
   creds,
   ).toString();
