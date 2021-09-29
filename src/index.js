@@ -1,6 +1,6 @@
 // Copyright (c) Cosmo Tech.
 // Licensed under the MIT license.
-const {BlobServiceClient, StorageSharedKeyCredential} = require('@azure/storage-blob');
+const {BlobServiceClient, StorageSharedKeyCredential, BlobSASPermissions, generateBlobSASQueryParameters} = require('@azure/storage-blob');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -14,6 +14,8 @@ async function main() {
   const containerPath = process.env.AZURE_STORAGE_CONTAINER_BLOB_PREFIX;
   const sasTTL = process.env.AZURE_STORAGE_SAS_TTL || 15;
   const outZipFile = process.env.CSM_OUTPUT_ZIP_FILE || 'csm-download-data.zip';
+  const ipFilter = process.env.AZURE_STORAGE_SAS_IP_FILTER;
+  const sasFile = process.env.CSM_OUT_SAS_FILE || '/var/download_url';
 
   const fileInfoPromise = zipDataIfNeeded(dataPath, outZipFile);
   const csInfosPromise = getConnectionStringInfos(connectionString);
@@ -23,6 +25,9 @@ async function main() {
   }
   const clients = await createAzureClients(connectionString, containerPath, fileInfo.fileName);
   await uploadFile(clients, fileInfo);
+  const sas = await getSAS(clients, csInfos);
+  console.log(`Writing SAS to file: ${sasFile}`);
+  await fs.promises.writeFile(sasFile, sas);
 }
 
 async function uploadFile(clients, fileInfo) {
@@ -50,6 +55,8 @@ async function createAzureClients(connectionString, containerBlobPrefix, blobNam
     blobServiceClient: blobServiceClient,
     containerClient: containerClient,
     blobClient: blobClient,
+    containerName: containerName,
+    blobPath: blobPath,
   };
 }
 
@@ -119,21 +126,35 @@ async function createTempDir() {
   });
 };
 
-async function getSAS(blobServiceClient, accountName, accessKey, containerName, blobName, permissions = 'r', ttlInMin = 15) {
-  const cerds = new StorageSharedKeyCredential(accountName, accessKey);
-  const containerClient = blobServiceClient.getContainerClient(containerName);
-  const blobClient = containerClient.getBlockBlobClient(blobName);
+async function getSAS(clients, csInfos, permissions = 'r', ttlInMin = 15, ipFilter) {
+  console.log(`Generating SAS URL for ${ttlInMin} minutes`);
+  console.debug(`Permissions: ${permissions}`);
+  console.debug('Creating Shared credentials');
+  const creds = new StorageSharedKeyCredential(csInfos.AccountName, csInfos.AccountKey);
+  let startIp = '0.0.0.0';
+  let endIp = '255.255.255.255';
+  if (ipFilter) {
+    console.log(`SAS IP filter detected: ${ipFilter}`)
+    startId = ipFilter;
+    endIp = ipFilter;
+  }
+  const containerName = clients.containerName;
+  const blobName = clients.blobPath;
 
-  const blobSAS = BlobServiceClient.generateBlobSASQueryParameters({
+  console.debug('Generating SAS')
+  const blobSAS = generateBlobSASQueryParameters({
     containerName,
     blobName,
-    permissions: BlobServiceClient.BlobSASPermissions.parse(permissions),
+    permissions: BlobSASPermissions.parse(permissions),
     startsOn: new Date(),
-    expiresOn: new Date(new Date().valueOf() + ttlInMin * 60),
+    expiresOn: new Date(new Date().valueOf() + ttlInMin * 60000),
+    ipRange: { start: startIp, end: endIp },
   },
-  cerds,
+  creds,
   ).toString();
 
-  const sasUrl= blobClient.url+'?'+blobSAS;
+  console.debug(`SAS: ${blobSAS}`);
+  const sasUrl= clients.blobClient.url+'?'+blobSAS;
+  console.debug(`SAS URL: ${sasUrl}`);
   return sasUrl;
 }
