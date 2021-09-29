@@ -27,7 +27,7 @@ async function main() {
 
 async function uploadFile(clients, fileInfo) {
   clients.containerClient.createIfNotExists();
-  clients.blobClient.uploadFile(fileInfo.filePath, {
+  const response = await clients.blobClient.uploadFile(fileInfo.filePath, {
     onProgress: ((progress) => {
       console.log('Upload progress: ' + progress.loadedBytes + ' bytes');
     }),
