@@ -10,8 +10,17 @@ main().then(() => console.log('Done')).catch((ex) => console.log(`Error: ${ex.me
 
 async function main() {
   const dataPath = process.env.CSM_DATA_ABSOLUTE_PATH;
+  if (!dataPath) {
+    throw new Error('CSM_DATA_ABSOLUTE_PATH is mandatory');
+  }
   const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+  if (!connectionString) {
+    throw new Error('AZURE_STORAGE_CONNECTION_STRING is mandatory');
+  }
   const containerPath = process.env.AZURE_STORAGE_CONTAINER_BLOB_PREFIX;
+  if (!containerPath) {
+    throw new Error('AZURE_STORAGE_CONTAINER_BLOB_PREFIX is mandatory');
+  }
   const sasTTL = process.env.AZURE_STORAGE_SAS_TTL || 15;
   const outZipFile = process.env.CSM_OUTPUT_ZIP_FILE || 'csm-download-data.zip';
   const ipFilter = process.env.AZURE_STORAGE_SAS_IP_FILTER;
