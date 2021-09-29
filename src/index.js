@@ -131,24 +131,24 @@ async function getSAS(clients, csInfos, permissions = 'r', ttlInMin = 15, ipFilt
   console.debug(`Permissions: ${permissions}`);
   console.debug('Creating Shared credentials');
   const creds = new StorageSharedKeyCredential(csInfos.AccountName, csInfos.AccountKey);
-  let startIp = '0.0.0.0';
+  const startIp = '0.0.0.0';
   let endIp = '255.255.255.255';
   if (ipFilter) {
-    console.log(`SAS IP filter detected: ${ipFilter}`)
+    console.log(`SAS IP filter detected: ${ipFilter}`);
     startId = ipFilter;
     endIp = ipFilter;
   }
   const containerName = clients.containerName;
   const blobName = clients.blobPath;
 
-  console.debug('Generating SAS')
+  console.debug('Generating SAS');
   const blobSAS = generateBlobSASQueryParameters({
     containerName,
     blobName,
     permissions: BlobSASPermissions.parse(permissions),
     startsOn: new Date(),
     expiresOn: new Date(new Date().valueOf() + ttlInMin * 60000),
-    ipRange: { start: startIp, end: endIp },
+    ipRange: {start: startIp, end: endIp},
   },
   creds,
   ).toString();
