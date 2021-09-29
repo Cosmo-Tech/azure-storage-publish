@@ -1,1 +1,4 @@
-console.log("Hello Cosmo")
+// Copyright (c) Cosmo Tech.
+// Licensed under the MIT license.
+
+console.log('Hello Cosmo');
