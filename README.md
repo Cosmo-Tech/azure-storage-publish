@@ -12,7 +12,7 @@ The file containing the URL can be setup in the Argo Workflow specification as a
 - **AZURE_STORAGE_SAS_TTL**: The time to live for generated Shared Access Signature (default: 15mn)
 
 ## Shared Access Signature
-The [URL with Shared Access Signature](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview) will be stored in /mnt/out/download_url.txt.
+The [URL with Shared Access Signature](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview) will be stored in /var/download_url
 
 ## Local run
 ``` bash
