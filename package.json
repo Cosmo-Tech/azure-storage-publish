@@ -1,0 +1,26 @@
+{
+  "name": "azure-storage-publish",
+  "version": "0.0.1",
+  "description": "Cosmo Tech Azure Storage publish with SAS URL in file",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cosmo-Tech/azure-storage-publish.git"
+  },
+  "keywords": [
+    "CosmoTech",
+    "Azure",
+    "Storage",
+    "SAS",
+    "Argo"
+  ],
+  "author": "Cosmo Tech",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Cosmo-Tech/azure-storage-publish/issues"
+  },
+  "homepage": "https://github.com/Cosmo-Tech/azure-storage-publish#readme"
+}
