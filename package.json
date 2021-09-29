@@ -30,7 +30,8 @@
   "homepage": "https://github.com/Cosmo-Tech/azure-storage-publish#readme",
   "dependencies": {
     "@azure/storage-blob": "^12.8.0",
-    "adm-zip": "^0.5.6"
+    "adm-zip": "^0.5.6",
+    "loglevel": "^1.7.1"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

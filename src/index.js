@@ -6,8 +6,13 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const AdmZip = require('adm-zip');
+const logger = require('loglevel');
 
-main().then(() => console.log('Done')).catch((ex) => console.log(`Error: ${ex.message}`));
+const logLevel = process.env.CSM_LOG_LEVEL || 'info';
+
+logger.setLevel(logLevel);
+
+main().then(() => logger.info('Done')).catch((ex) => logger.info(`Error: ${ex.message}`));
 
 /**
  * The main application function
@@ -39,7 +44,7 @@ async function main() {
   const clients = await createAzureClients(connectionString, containerPath, fileInfo.fileName);
   await uploadFile(clients, fileInfo);
   const sas = await getSAS(clients, csInfos, sasTTL, ipFilter);
-  console.log(`Writing SAS to file: ${sasFile}`);
+  logger.info(`Writing SAS to file: ${sasFile}`);
   await fs.promises.writeFile(sasFile, sas);
 }
 
@@ -52,7 +57,7 @@ async function uploadFile(clients, fileInfo) {
   clients.containerClient.createIfNotExists();
   await clients.blobClient.uploadFile(fileInfo.filePath, {
     onProgress: ((progress) => {
-      console.log('Upload progress: ' + progress.loadedBytes + ' bytes');
+      logger.info('Upload progress: ' + progress.loadedBytes + ' bytes');
     }),
   });
 }
@@ -65,15 +70,15 @@ async function uploadFile(clients, fileInfo) {
  * @return {object} service, container, blob clients and container and blob infos
  */
 async function createAzureClients(connectionString, containerBlobPrefix, blobName) {
-  console.log('Creating Azure clients');
-  console.debug('Creating blob service client');
+  logger.info('Creating Azure clients');
+  logger.debug('Creating blob service client');
   const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
   const [containerName, blobPrefix] = await splitContainerBlobPrefix(containerBlobPrefix);
   const blobPath = path.join(blobPrefix, blobName);
-  console.debug(`blob path: ${blobPath}`);
-  console.debug('Creating container client');
+  logger.debug(`blob path: ${blobPath}`);
+  logger.debug('Creating container client');
   const containerClient = blobServiceClient.getContainerClient(containerName);
-  console.debug('Creating blob client');
+  logger.debug('Creating blob client');
   const blobClient = containerClient.getBlockBlobClient(blobPath);
 
   return {
@@ -91,11 +96,11 @@ async function createAzureClients(connectionString, containerBlobPrefix, blobNam
  * @return {array} [container, blobPrefix]
  */
 async function splitContainerBlobPrefix(csmAzureStoragePath) {
-  console.debug(`Spliting ${csmAzureStoragePath}`);
+  logger.debug(`Spliting ${csmAzureStoragePath}`);
   const [container, ...prefix] = csmAzureStoragePath.split('/', 2);
   const blobPrefix = prefix.join('/');
-  console.debug(`Container: ${container}`);
-  console.debug(`Blob prefix: ${blobPrefix}`);
+  logger.debug(`Container: ${container}`);
+  logger.debug(`Blob prefix: ${blobPrefix}`);
   return [container, blobPrefix];
 }
 
@@ -107,17 +112,17 @@ async function splitContainerBlobPrefix(csmAzureStoragePath) {
 async function getConnectionStringInfos(connectionString) {
   const infos = connectionString.split(';');
   const csInfos = {};
-  console.debug('--- Connection String infos');
+  logger.debug('--- Connection String infos');
   infos.forEach((info) => {
     // Handle '=' in shared access key
     const [key, ...value] = info.split('=');
     valueJoin = value.join('=');
     csInfos[key] = valueJoin;
-    if (key == 'AccountKey') console.debug('AccountKey: **********');
-    else console.debug(`${key}:${value}`);
+    if (key == 'AccountKey') logger.debug('AccountKey: **********');
+    else logger.debug(`${key}:${value}`);
   },
   );
-  console.debug('---');
+  logger.debug('---');
 
   return csInfos;
 }
@@ -132,24 +137,24 @@ async function zipDataIfNeeded(dirPath, zipFileName) {
   return new Promise((resolve, reject) => {
     const files = fs.readdirSync(dirPath);
     const filesCount = files.length;
-    console.debug(`${filesCount} files in ${dirPath}`);
+    logger.debug(`${filesCount} files in ${dirPath}`);
     if (filesCount == 0) {
-      console.warn('No files to publish');
+      logger.warn('No files to publish');
       return resolve(null);
     }
     if (filesCount == 1) {
       const outFileName = files[0];
       const fullPath = path.join(dirPath, outFileName);
-      console.log(`1 file detected, no zip: ${fullPath}`);
+      logger.info(`1 file detected, no zip: ${fullPath}`);
       return resolve({fileName: outFileName, filePath: fullPath});
     } else {
       createTempDir()
           .then((folder) => {
             const outFile = path.join(folder, zipFileName);
             const file = new AdmZip();
-            console.debug(`adding ${dirPath} to zip file`);
+            logger.debug(`adding ${dirPath} to zip file`);
             file.addLocalFolder(dirPath);
-            console.log(`writing zip file: ${outFile}`);
+            logger.info(`writing zip file: ${outFile}`);
             file.writeZip(outFile);
             return resolve({fileName: zipFileName, filePath: outFile});
           });
@@ -165,7 +170,7 @@ async function createTempDir() {
   return new Promise((resolve, reject) => {
     fs.mkdtemp(path.join(os.tmpdir(), 'csm-'), (err, folder) => {
       if (err) throw err;
-      console.debug(`temp folder created: ${folder}`);
+      logger.debug(`temp folder created: ${folder}`);
       resolve(folder);
     });
   });
@@ -181,9 +186,9 @@ async function createTempDir() {
  * @return {string} The generate download URL with the Shared Access Security token
  */
 async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = 'r') {
-  console.log(`Generating SAS URL for ${ttlInMin} minutes`);
-  console.debug(`Permissions: ${permissions}`);
-  console.debug('Creating Shared credentials');
+  logger.info(`Generating SAS URL for ${ttlInMin} minutes`);
+  logger.debug(`Permissions: ${permissions}`);
+  logger.debug('Creating Shared credentials');
   const creds = new StorageSharedKeyCredential(csInfos.AccountName, csInfos.AccountKey);
   let ipRange = {
     start: '0.0.0.0',
@@ -191,7 +196,7 @@ async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = '
   };
 
   if (ipFilter) {
-    console.log(`SAS IP filter detected: ${ipFilter}`);
+    logger.info(`SAS IP filter detected: ${ipFilter}`);
     ipRange = {
       start: ipFilter,
     };
@@ -199,7 +204,7 @@ async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = '
   const containerName = clients.containerName;
   const blobName = clients.blobPath;
 
-  console.debug('Generating SAS');
+  logger.debug('Generating SAS');
   const blobSAS = generateBlobSASQueryParameters({
     containerName,
     blobName,
@@ -211,8 +216,8 @@ async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = '
   creds,
   ).toString();
 
-  console.debug(`SAS: ${blobSAS}`);
+  logger.debug(`SAS: ${blobSAS}`);
   const sasUrl= clients.blobClient.url+'?'+blobSAS;
-  console.debug(`SAS URL: ${sasUrl}`);
+  logger.debug(`SAS URL: ${sasUrl}`);
   return sasUrl;
 }
