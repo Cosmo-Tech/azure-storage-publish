@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/Cosmo-Tech/azure-storage-publish/issues"
   },
-  "homepage": "https://github.com/Cosmo-Tech/azure-storage-publish#readme"
+  "homepage": "https://github.com/Cosmo-Tech/azure-storage-publish#readme",
+  "dependencies": {
+    "@azure/storage-blob": "^12.8.0"
+  }
 }
