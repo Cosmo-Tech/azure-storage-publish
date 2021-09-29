@@ -34,14 +34,14 @@ async function main() {
   }
   const clients = await createAzureClients(connectionString, containerPath, fileInfo.fileName);
   await uploadFile(clients, fileInfo);
-  const sas = await getSAS(clients, csInfos);
+  const sas = await getSAS(clients, csInfos, sasTTL, ipFilter);
   console.log(`Writing SAS to file: ${sasFile}`);
   await fs.promises.writeFile(sasFile, sas);
 }
 
 async function uploadFile(clients, fileInfo) {
   clients.containerClient.createIfNotExists();
-  const response = await clients.blobClient.uploadFile(fileInfo.filePath, {
+  await clients.blobClient.uploadFile(fileInfo.filePath, {
     onProgress: ((progress) => {
       console.log('Upload progress: ' + progress.loadedBytes + ' bytes');
     }),
@@ -127,7 +127,7 @@ async function zipDataIfNeeded(dirPath, zipFileName, callback) {
 
 async function createTempDir() {
   return new Promise((resolve, reject) => {
-    const folder = fs.mkdtemp(path.join(os.tmpdir(), 'csm-'), (err, folder) => {
+    fs.mkdtemp(path.join(os.tmpdir(), 'csm-'), (err, folder) => {
       if (err) throw err;
       console.debug(`temp folder created: ${folder}`);
       resolve(folder);
@@ -135,7 +135,7 @@ async function createTempDir() {
   });
 };
 
-async function getSAS(clients, csInfos, permissions = 'r', ttlInMin = 15, ipFilter) {
+async function getSAS(clients, csInfos, ttlInMin = 15, ipFilter, permissions = 'r') {
   console.log(`Generating SAS URL for ${ttlInMin} minutes`);
   console.debug(`Permissions: ${permissions}`);
   console.debug('Creating Shared credentials');
