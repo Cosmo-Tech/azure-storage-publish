@@ -12,7 +12,10 @@ const logLevel = process.env.CSM_LOG_LEVEL || 'info';
 
 logger.setLevel(logLevel);
 
-main().then(() => logger.info('Done')).catch((ex) => logger.info(`Error: ${ex.message}`));
+main().then(() => logger.info('Done')).catch((ex) => {
+  logger.info(`Error: ${ex.message}`);
+  process.exit(1);
+});
 
 /**
  * The main application function
