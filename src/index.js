@@ -36,7 +36,7 @@ async function main() {
   const sasTTL = process.env.AZURE_STORAGE_SAS_TTL || 15;
   const outZipFile = process.env.CSM_OUTPUT_ZIP_FILE || 'csm-download-data.zip';
   const ipFilter = process.env.AZURE_STORAGE_SAS_IP_FILTER;
-  const sasFile = process.env.CSM_OUT_SAS_FILE || '/var/download_url';
+  const sasFile = process.env.CSM_OUT_SAS_FILE || '/var/csmoutput/download_url';
 
   const fileInfoPromise = zipDataIfNeeded(dataPath, outZipFile);
   const csInfosPromise = getConnectionStringInfos(connectionString);
