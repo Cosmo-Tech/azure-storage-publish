@@ -14,11 +14,11 @@ The file containing the URL can be setup in the Argo Workflow specification as a
 - **AZURE_STORAGE_SAS_TTL**: The time to live for the generated SAS token (default: 15mn)
 - **AZURE_STORAGE_SAS_IP_FILTER**: The IP filter for the generated SAS token (default: none)
 - **CSM_OUTPUT_ZIP_FILE**: The name of the zip file in case of multiple files in the data folder (default: csm-download-data.zip)
-- **CSM_OUT_SAS_FILE**: The name of the file containing the download URL with the SAS token (default: /var/download_url)
+- **CSM_OUT_SAS_FILE**: The name of the file containing the download URL with the SAS token (default: /var/csmoutput/download_url)
 - **CSM_LOG_LEVEL**: The logger level (default: info)
 
 ## Shared Access Signature
-The [URL with Shared Access Signature](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview) will be stored in CSM_OUT_SAS_FILE (default: /var/download_url)
+The [URL with Shared Access Signature](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview) will be stored in CSM_OUT_SAS_FILE (default: /var/csmoutput/download_url)
 
 ## Local run
 ``` bash
